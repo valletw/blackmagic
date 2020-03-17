@@ -66,306 +66,373 @@ const struct command_s efm32_cmd_list[] = {
 	{NULL, NULL, NULL}
 };
 
-
-
 /* -------------------------------------------------------------------------- */
 /* Memory System Controller (MSC) Registers */
 /* -------------------------------------------------------------------------- */
 
-#define EFM32_MSC_WRITECTRL(msc)	   	(msc+0x008)
-#define EFM32_MSC_WRITECMD(msc)	      	(msc+0x00c)
-#define EFM32_MSC_ADDRB(msc)		 	(msc+0x010)
-#define EFM32_MSC_WDATA(msc)		 	(msc+0x018)
-#define EFM32_MSC_STATUS(msc)			(msc+0x01c)
-#define EFM32_MSC_IF(msc)				(msc+0x030)
-#define EFM32_MSC_LOCK(msc)				(msc+(msc == 0x400c0000?0x3c:0x40))
-#define EFM32_MSC_MASSLOCK(msc)	      	(msc+0x054)
+#define EFM32_MSC_WRITECTRL(msc)   (msc+0x008)
+#define EFM32_MSC_WRITECMD(msc)    (msc+0x00c)
+#define EFM32_MSC_ADDRB(msc)       (msc+0x010)
+#define EFM32_MSC_WDATA(msc)       (msc+0x018)
+#define EFM32_MSC_STATUS(msc)      (msc+0x01c)
+#define EFM32_MSC_IF(msc)          (msc+0x030)
+#define EFM32_MSC_LOCK(msc)        (msc+(msc == 0x400c0000?0x3c:0x40))
+#define EFM32_MSC_MASSLOCK(msc)    (msc+0x054)
 
-#define EFM32_MSC_LOCK_LOCKKEY	  	0x1b71
-#define EFM32_MSC_MASSLOCK_LOCKKEY	0x631a
+#define EFM32_MSC_LOCK_LOCKKEY        0x1b71
+#define EFM32_MSC_MASSLOCK_LOCKKEY    0x631a
 
-#define EFM32_MSC_WRITECMD_LADDRIM	(1<<0)
-#define EFM32_MSC_WRITECMD_ERASEPAGE	(1<<1)
-#define EFM32_MSC_WRITECMD_WRITEEND	(1<<2)
-#define EFM32_MSC_WRITECMD_WRITEONCE	(1<<3)
-#define EFM32_MSC_WRITECMD_WRITETRIG	(1<<4)
-#define EFM32_MSC_WRITECMD_ERASEABORT	(1<<5)
-#define EFM32_MSC_WRITECMD_ERASEMAIN0	(1<<8)
+#define EFM32_MSC_WRITECMD_LADDRIM       (1<<0)
+#define EFM32_MSC_WRITECMD_ERASEPAGE     (1<<1)
+#define EFM32_MSC_WRITECMD_WRITEEND      (1<<2)
+#define EFM32_MSC_WRITECMD_WRITEONCE     (1<<3)
+#define EFM32_MSC_WRITECMD_WRITETRIG     (1<<4)
+#define EFM32_MSC_WRITECMD_ERASEABORT    (1<<5)
+#define EFM32_MSC_WRITECMD_ERASEMAIN0    (1<<8)
 
-#define EFM32_MSC_STATUS_BUSY		(1<<0)
-#define EFM32_MSC_STATUS_LOCKED		(1<<1)
-#define EFM32_MSC_STATUS_INVADDR	(1<<2)
-#define EFM32_MSC_STATUS_WDATAREADY	(1<<3)
-
+#define EFM32_MSC_STATUS_BUSY            (1<<0)
+#define EFM32_MSC_STATUS_LOCKED          (1<<1)
+#define EFM32_MSC_STATUS_INVADDR         (1<<2)
+#define EFM32_MSC_STATUS_WDATAREADY      (1<<3)
 
 /* -------------------------------------------------------------------------- */
 /* Flash Infomation Area */
 /* -------------------------------------------------------------------------- */
 
-#define EFM32_INFO			0x0fe00000
-#define EFM32_USER_DATA		(EFM32_INFO+0x0000)
-#define EFM32_LOCK_BITS		(EFM32_INFO+0x4000)
-#define EFM32_V1_DI			(EFM32_INFO+0x8000)
-#define EFM32_V2_DI			(EFM32_INFO+0x81B0)
-
+#define EFM32_INFO          0x0fe00000
+#define EFM32_USER_DATA    (EFM32_INFO+0x00000)
+#define EFM32_LOCK_BITS    (EFM32_INFO+0x04000)    /* EFR32xG2x has no Lock Bits page in Flash */
+#define EFM32_DI_V1        (EFM32_INFO+0x081B0)    /* EFM32xG */
+#define EFM32_DI_V2        (EFM32_INFO+0x081A8)    /* EZR32xG */
+#define EFM32_DI_V3        (EFM32_INFO+0x081B0)    /* EFR32xG1x */
+#define EFM32_DI_V4        (EFM32_INFO+0x08000)    /* EFR32xG2x */
+#define EFM32_BOOTLOADER   (EFM32_INFO+0x10000)
 
 /* -------------------------------------------------------------------------- */
 /* Lock Bits (LB) */
 /* -------------------------------------------------------------------------- */
 
-#define EFM32_LOCK_BITS_DLW		(EFM32_LOCK_BITS+(4*127))
-#define EFM32_LOCK_BITS_ULW		(EFM32_LOCK_BITS+(4*126))
-#define EFM32_LOCK_BITS_MLW		(EFM32_LOCK_BITS+(4*125))
-#define EFM32_LOCK_BITS_CLW0	(EFM32_LOCK_BITS+(4*122))
+#define EFM32_LOCK_BITS_DLW     (EFM32_LOCK_BITS+(4*127))
+#define EFM32_LOCK_BITS_ULW     (EFM32_LOCK_BITS+(4*126))
+#define EFM32_LOCK_BITS_MLW     (EFM32_LOCK_BITS+(4*125))
+#define EFM32_LOCK_BITS_CLW0    (EFM32_LOCK_BITS+(4*122))
 
-#define EFM32_CLW0_BOOTLOADER_ENABLE	(1<<1)
-#define EFM32_CLW0_PINRESETSOFT			(1<<2)
+#define EFM32_CLW0_BOOTLOADER_ENABLE    (1<<1)
+#define EFM32_CLW0_PINRESETSOFT         (1<<2)
 
 /* -------------------------------------------------------------------------- */
-/* Device Information (DI) Area - Version 1 V1 */
+/* Device Information (DI) Area */
 /* -------------------------------------------------------------------------- */
+/* Information extracted from Gecko SDK v2.7 */
 
-#define EFM32_V1_DI_CMU_LFRCOCTRL 		(EFM32_V1_DI+0x020)
-#define EFM32_V1_DI_CMU_HFRCOCTRL 		(EFM32_V1_DI+0x028)
-#define EFM32_V1_DI_CMU_AUXHFRCOCTRL 	(EFM32_V1_DI+0x030)
-#define EFM32_V1_DI_ADC0_CAL 		(EFM32_V1_DI+0x040)
-#define EFM32_V1_DI_ADC0_BIASPROG 		(EFM32_V1_DI+0x048)
-#define EFM32_V1_DI_DAC0_CAL 		(EFM32_V1_DI+0x050)
-#define EFM32_V1_DI_DAC0_BIASPROG 		(EFM32_V1_DI+0x058)
-#define EFM32_V1_DI_ACMP0_CTRL 		(EFM32_V1_DI+0x060)
-#define EFM32_V1_DI_ACMP1_CTRL 		(EFM32_V1_DI+0x068)
-#define EFM32_V1_DI_CMU_LCDCTRL 		(EFM32_V1_DI+0x078)
-#define EFM32_V1_DI_DAC0_OPACTRL 		(EFM32_V1_DI+0x0A0)
-#define EFM32_V1_DI_DAC0_OPAOFFSET 	(EFM32_V1_DI+0x0A8)
-#define EFM32_V1_DI_EMU_BUINACT 		(EFM32_V1_DI+0x0B0)
-#define EFM32_V1_DI_EMU_BUACT 		(EFM32_V1_DI+0x0B8)
-#define EFM32_V1_DI_EMU_BUBODBUVINCAL 	(EFM32_V1_DI+0x0C0)
-#define EFM32_V1_DI_EMU_BUBODUNREGCAL 	(EFM32_V1_DI+0x0C8)
-#define EFM32_V1_DI_MCM_REV_MIN 		(EFM32_V1_DI+0x1AA)
-#define EFM32_V1_DI_MCM_REV_MAJ 		(EFM32_V1_DI+0x1AB)
-#define EFM32_V1_DI_RADIO_REV_MIN 		(EFM32_V1_DI+0x1AC)
-#define EFM32_V1_DI_RADIO_REV_MAJ 		(EFM32_V1_DI+0x1AD)
-#define EFM32_V1_DI_RADIO_OPN 		(EFM32_V1_DI+0x1AE)
-#define EFM32_V1_DI_V1_DI_CRC 		(EFM32_V1_DI+0x1B0)
-#define EFM32_V1_DI_CAL_TEMP_0 		(EFM32_V1_DI+0x1B2)
-#define EFM32_V1_DI_ADC0_CAL_1V25 		(EFM32_V1_DI+0x1B4)
-#define EFM32_V1_DI_ADC0_CAL_2V5 		(EFM32_V1_DI+0x1B6)
-#define EFM32_V1_DI_ADC0_CAL_VDD 		(EFM32_V1_DI+0x1B8)
-#define EFM32_V1_DI_ADC0_CAL_5VDIFF 	(EFM32_V1_DI+0x1BA)
-#define EFM32_V1_DI_ADC0_CAL_2XVDD 	(EFM32_V1_DI+0x1BC)
-#define EFM32_V1_DI_ADC0_TEMP_0_READ_1V25	(EFM32_V1_DI+0x1BE)
-#define EFM32_V1_DI_DAC0_CAL_1V25 		(EFM32_V1_DI+0x1C8)
-#define EFM32_V1_DI_DAC0_CAL_2V5 		(EFM32_V1_DI+0x1CC)
-#define EFM32_V1_DI_DAC0_CAL_VDD 		(EFM32_V1_DI+0x1D0)
-#define EFM32_V1_DI_AUXHFRCO_CALIB_BAND_1 	(EFM32_V1_DI+0x1D4)
-#define EFM32_V1_DI_AUXHFRCO_CALIB_BAND_7 	(EFM32_V1_DI+0x1D5)
-#define EFM32_V1_DI_AUXHFRCO_CALIB_BAND_11 (EFM32_V1_DI+0x1D6)
-#define EFM32_V1_DI_AUXHFRCO_CALIB_BAND_14 (EFM32_V1_DI+0x1D7)
-#define EFM32_V1_DI_AUXHFRCO_CALIB_BAND_21 (EFM32_V1_DI+0x1D8)
-#define EFM32_V1_DI_AUXHFRCO_CALIB_BAND_28 (EFM32_V1_DI+0x1D9)
-#define EFM32_V1_DI_HFRCO_CALIB_BAND_1 	(EFM32_V1_DI+0x1DC)
-#define EFM32_V1_DI_HFRCO_CALIB_BAND_7 	(EFM32_V1_DI+0x1DD)
-#define EFM32_V1_DI_HFRCO_CALIB_BAND_11 	(EFM32_V1_DI+0x1DE)
-#define EFM32_V1_DI_HFRCO_CALIB_BAND_14 	(EFM32_V1_DI+0x1DF)
-#define EFM32_V1_DI_HFRCO_CALIB_BAND_21 	(EFM32_V1_DI+0x1E0)
-#define EFM32_V1_DI_HFRCO_CALIB_BAND_28 	(EFM32_V1_DI+0x1E1)
-#define EFM32_V1_DI_MEM_INFO_PAGE_SIZE 	(EFM32_V1_DI+0x1E7)
-#define EFM32_V1_DI_RADIO_ID 		(EFM32_V1_DI+0x1EE)
-#define EFM32_V1_DI_EUI64_0 		(EFM32_V1_DI+0x1F0)
-#define EFM32_V1_DI_EUI64_1 		(EFM32_V1_DI+0x1F4)
-#define EFM32_V1_DI_MEM_INFO_FLASH 	(EFM32_V1_DI+0x1F8)
-#define EFM32_V1_DI_MEM_INFO_RAM 		(EFM32_V1_DI+0x1FA)
-#define EFM32_V1_DI_PART_NUMBER 		(EFM32_V1_DI+0x1FC)
-#define EFM32_V1_DI_PART_FAMILY 		(EFM32_V1_DI+0x1FE)
-#define EFM32_V1_DI_PROD_REV 		(EFM32_V1_DI+0x1FF)
+#define EFM32_DI_PART_NUMBER_OFST     0
+#define EFM32_DI_PART_FAMILY_OFST    16
+#define EFM32_DI_PART_NUMBER_MASK    0xFFFF
+#define EFM32_DI_PART_FAMILY_MASK    0xFF
+
+#define EFM32_DI_V4_PART_FAMILYNUM_OFST    16
+#define EFM32_DI_V4_PART_FAMILYNUM_MASK    0x3F
+#define EFM32_DI_V4_PART_FAMILY_OFST       24
+#define EFM32_DI_V4_PART_FAMILY_MASK       0x3F
+
+#define EFM32_DI_MSIZE_FLASH_OFST     0
+#define EFM32_DI_MSIZE_SRAM_OFST     16
+#define EFM32_DI_MSIZE_FLASH_MASK    0xFFFF
+#define EFM32_DI_MSIZE_SRAM_MASK     0xFFFF
+
+#define EFM32_DI_MEMINFO_FLASHPAGESIZE_OFST    24
+#define EFM32_DI_MEMINFO_FLASHPAGESIZE_MASK    0xFF
+
+#define EFM32_DI_V4_MEMINFO_FLASHPAGESIZE_OFST    0
+#define EFM32_DI_V4_MEMINFO_FLASHPAGESIZE_MASK    0xFF
+
+#define EFM32_DI_PKGINFO_TEMPGRADE_OFST         0
+#define EFM32_DI_PKGINFO_PKGTYPE_OFST           8
+#define EFM32_DI_PKGINFO_PINCOUNT_OFST         16
+#define EFM32_DI_PKGINFO_TEMPGRADE_MASK        0xFF
+#define EFM32_DI_PKGINFO_PKGTYPE_MASK          0xFF
+#define EFM32_DI_PKGINFO_PINCOUNT_MASK         0xFF
 
 /* top 24 bits of eui */
-#define EFM32_V1_DI_EUI_SILABS	0x000b57
+#define EFM32_DI_V0_DI_EUI_SILABS         0x000b57
+#define EFM32_DI_V3_DI_EUI_ENERGYMICRO    0xd0cf5e
 
-/* -------------------------------------------------------------------------- */
-/* Device Information (DI) Area - Version 2 V2 */
-/* -------------------------------------------------------------------------- */
+/* EFM32xG */
+typedef struct {
+	uint32_t CAL;           /* Calibration temperature and checksum */
+	uint32_t ADC0CAL0;      /* ADC0 Calibration register 0 */
+	uint32_t ADC0CAL1;      /* ADC0 Calibration register 1 */
+	uint32_t ADC0CAL2;      /* ADC0 Calibration register 2 */
+	uint32_t RESERVED0[2U];
+	uint32_t DAC0CAL0;      /* DAC calibrartion register 0 */
+	uint32_t DAC0CAL1;      /* DAC calibrartion register 1 */
+	uint32_t DAC0CAL2;      /* DAC calibrartion register 2 */
+	uint32_t AUXHFRCOCAL0;  /* AUXHFRCO calibration register 0 */
+	uint32_t AUXHFRCOCAL1;  /* AUXHFRCO calibration register 1 */
+	uint32_t HFRCOCAL0;     /* HFRCO calibration register 0 */
+	uint32_t HFRCOCAL1;     /* HFRCO calibration register 1 */
+	uint32_t MEMINFO;       /* Memory information */
+	uint32_t RESERVED2[2U];
+	uint32_t UNIQUEL;       /* Low 32 bits of device unique number */
+	uint32_t UNIQUEH;       /* High 32 bits of device unique number */
+	uint32_t MSIZE;         /* Flash and SRAM Memory size in KiloBytes */
+	uint32_t PART;          /* Part description */
+} di_v1_t;
 
-#define EFM32_V2_DI_CAL	(EFM32_V2_DI+0x000)	/* CRC of DI-page and calibration temperature */
-#define EFM32_V2_DI_EXTINFO	(EFM32_V2_DI+0x020)	/* External Component description */
-#define EFM32_V2_DI_EUI48L	(EFM32_V2_DI+0x028)	/* EUI48 OUI and Unique identifier */
-#define EFM32_V2_DI_EUI48H	(EFM32_V2_DI+0x02C)	/* OUI */
-#define EFM32_V2_DI_CUSTOMINFO	(EFM32_V2_DI+0x030)	/* Custom information */
-#define EFM32_V2_DI_MEMINFO	(EFM32_V2_DI+0x034)	/* Flash page size and misc. chip information */
-#define EFM32_V2_DI_UNIQUEL	(EFM32_V2_DI+0x040)	/* Low 32 bits of device unique number */
-#define EFM32_V2_DI_UNIQUEH	(EFM32_V2_DI+0x044)	/* High 32 bits of device unique number */
-#define EFM32_V2_DI_MSIZE	(EFM32_V2_DI+0x048)	/* Flash and SRAM Memory size in kB */
-#define EFM32_V2_DI_PART	(EFM32_V2_DI+0x04C)	/* Part description */
-#define EFM32_V2_DI_DEVINFOREV	(EFM32_V2_DI+0x050)	/* Device information page revision */
-#define EFM32_V2_DI_EMUTEMP	(EFM32_V2_DI+0x054)	/* EMU Temperature Calibration Information */
-#define EFM32_V2_DI_ADC0CAL0	(EFM32_V2_DI+0x060)	/* ADC0 calibration register 0 */
-#define EFM32_V2_DI_ADC0CAL1	(EFM32_V2_DI+0x064)	/* ADC0 calibration register 1 */
-#define EFM32_V2_DI_ADC0CAL2	(EFM32_V2_DI+0x068)	/* ADC0 calibration register 2 */
-#define EFM32_V2_DI_ADC0CAL3	(EFM32_V2_DI+0x06C)	/* ADC0 calibration register 3 */
-#define EFM32_V2_DI_HFRCOCAL0	(EFM32_V2_DI+0x080)	/* HFRCO Calibration Register (4 MHz) */
-#define EFM32_V2_DI_HFRCOCAL3	(EFM32_V2_DI+0x08C)	/* HFRCO Calibration Register (7 MHz) */
-#define EFM32_V2_DI_HFRCOCAL6	(EFM32_V2_DI+0x098)	/* HFRCO Calibration Register (13 MHz) */
-#define EFM32_V2_DI_HFRCOCAL7	(EFM32_V2_DI+0x09C)	/* HFRCO Calibration Register (16 MHz)  */
-#define EFM32_V2_DI_HFRCOCAL8	(EFM32_V2_DI+0x0A0)
-#define EFM32_V2_DI_HFRCOCAL10	(EFM32_V2_DI+0x0A8)
-#define EFM32_V2_DI_HFRCOCAL11	(EFM32_V2_DI+0x0AC)
-#define EFM32_V2_DI_HFRCOCAL12	(EFM32_V2_DI+0x0B0)
-#define EFM32_V2_DI_AUXHFRCOCAL0	(EFM32_V2_DI+0x0E0)
-#define EFM32_V2_DI_AUXHFRCOCAL3	(EFM32_V2_DI+0x0EC)
-#define EFM32_V2_DI_AUXHFRCOCAL6	(EFM32_V2_DI+0x0F8)
-#define EFM32_V2_DI_AUXHFRCOCAL7	(EFM32_V2_DI+0x0FC)
-#define EFM32_V2_DI_AUXHFRCOCAL8	(EFM32_V2_DI+0x100)
-#define EFM32_V2_DI_AUXHFRCOCAL10	(EFM32_V2_DI+0x108)
-#define EFM32_V2_DI_AUXHFRCOCAL11	(EFM32_V2_DI+0x10C)
-#define EFM32_V2_DI_AUXHFRCOCAL12	(EFM32_V2_DI+0x110)
-#define EFM32_V2_DI_VMONCAL0	(EFM32_V2_DI+0x140)
-#define EFM32_V2_DI_VMONCAL1	(EFM32_V2_DI+0x144)	/* VMON Calibration Register 1 */
-#define EFM32_V2_DI_VMONCAL2	(EFM32_V2_DI+0x148)	/* VMON Calibration Register 2 */
-#define EFM32_V2_DI_IDAC0CAL0	(EFM32_V2_DI+0x158)	/* IDAC0 Calibration Register 0 */
-#define EFM32_V2_DI_IDAC0CAL1	(EFM32_V2_DI+0x15C)	/* IDAC0 Calibration Register 1 */
-#define EFM32_V2_DI_DCDCLNVCTRL0	(EFM32_V2_DI+0x168)	/* DCDC Low-noise VREF Trim Register 0 */
-#define EFM32_V2_DI_DCDCLPVCTRL0	(EFM32_V2_DI+0x16C)	/* DCDC Low-power VREF Trim Register 0 */
-#define EFM32_V2_DI_DCDCLPVCTRL1	(EFM32_V2_DI+0x170)	/* DCDC Low-power VREF Trim Register 1 */
-#define EFM32_V2_DI_DCDCLPVCTRL2	(EFM32_V2_DI+0x174)	/* DCDC Low-power VREF Trim Register 2 */
-#define EFM32_V2_DI_DCDCLPVCTRL3	(EFM32_V2_DI+0x178)	/* DCDC Low-power VREF Trim Register 3 */
-#define EFM32_V2_DI_DCDCLPCMPHYSSEL0	(EFM32_V2_DI+0x17C)	/* DCDC LPCMPHYSSEL Trim Register 0 */
-#define EFM32_V2_DI_DCDCLPCMPHYSSEL1	(EFM32_V2_DI+0x180)	/* DCDC LPCMPHYSSEL Trim Register 1 */
-#define EFM32_V2_DI_VDAC0MAINCAL	(EFM32_V2_DI+0x184)	/* VDAC0 Cals for Main Path */
-#define EFM32_V2_DI_VDAC0ALTCAL	(EFM32_V2_DI+0x188)	/* VDAC0 Cals for Alternate Path */
-#define EFM32_V2_DI_VDAC0CH1CAL	(EFM32_V2_DI+0x18C)	/* VDAC0 CH1 Error Cal */
-#define EFM32_V2_DI_OPA0CAL0	(EFM32_V2_DI+0x190)	/* OPA0 Calibration Register for DRIVESTRENGTH 0, INCBW=1 */
-#define EFM32_V2_DI_OPA0CAL1	(EFM32_V2_DI+0x194)	/* OPA0 Calibration Register for DRIVESTRENGTH 1, INCBW=1 */
-#define EFM32_V2_DI_OPA0CAL2	(EFM32_V2_DI+0x198)	/* OPA0 Calibration Register for DRIVESTRENGTH 2, INCBW=1 */
-#define EFM32_V2_DI_OPA0CAL3	(EFM32_V2_DI+0x19C)	/* OPA0 Calibration Register for DRIVESTRENGTH 3, INCBW=1 */
-#define EFM32_V2_DI_OPA1CAL0	(EFM32_V2_DI+0x1A0)	/* OPA1 Calibration Register for DRIVESTRENGTH 0, INCBW=1 */
-#define EFM32_V2_DI_OPA1CAL1	(EFM32_V2_DI+0x1A4)	/* OPA1 Calibration Register for DRIVESTRENGTH 1, INCBW=1 */
-#define EFM32_V2_DI_OPA1CAL2	(EFM32_V2_DI+0x1A8)
-#define EFM32_V2_DI_OPA1CAL3	(EFM32_V2_DI+0x1AC)
-#define EFM32_V2_DI_OPA2CAL0	(EFM32_V2_DI+0x1B0)
-#define EFM32_V2_DI_OPA2CAL1	(EFM32_V2_DI+0x1B4)
-#define EFM32_V2_DI_OPA2CAL2	(EFM32_V2_DI+0x1B8)
-#define EFM32_V2_DI_OPA2CAL3	(EFM32_V2_DI+0x1BC)
-#define EFM32_V2_DI_CSENGAINCAL	(EFM32_V2_DI+0x1C0)
-#define EFM32_V2_DI_OPA0CAL4	(EFM32_V2_DI+0x1D0)
-#define EFM32_V2_DI_OPA0CAL5	(EFM32_V2_DI+0x1D4)
-#define EFM32_V2_DI_OPA0CAL6	(EFM32_V2_DI+0x1D8)
-#define EFM32_V2_DI_OPA0CAL7	(EFM32_V2_DI+0x1DC)
-#define EFM32_V2_DI_OPA1CAL4	(EFM32_V2_DI+0x1E0)
-#define EFM32_V2_DI_OPA1CAL5	(EFM32_V2_DI+0x1E4)
-#define EFM32_V2_DI_OPA1CAL6	(EFM32_V2_DI+0x1E8)
-#define EFM32_V2_DI_OPA1CAL7	(EFM32_V2_DI+0x1EC)
-#define EFM32_V2_DI_OPA2CAL4	(EFM32_V2_DI+0x1F0)
-#define EFM32_V2_DI_OPA2CAL5	(EFM32_V2_DI+0x1F4)
-#define EFM32_V2_DI_OPA2CAL6	(EFM32_V2_DI+0x1F8)	/* OPA2 Calibration Register for DRIVESTRENGTH 2, INCBW=0 */
-#define EFM32_V2_DI_OPA2CAL7	(EFM32_V2_DI+0x1FC)	/* OPA2 Calibration Register for DRIVESTRENGTH 3, INCBW=0 */
+/* EZR32xG */
+typedef struct {
+	uint32_t RADIO0;        /* Radio information 0 */
+	uint32_t RADIO1;        /* Radio information 1 */
+	uint32_t CAL;           /* Calibration temperature and checksum */
+	uint32_t ADC0CAL0;      /* ADC0 Calibration register 0 */
+	uint32_t ADC0CAL1;      /* ADC0 Calibration register 1 */
+	uint32_t ADC0CAL2;      /* ADC0 Calibration register 2 */
+	uint32_t RESERVED0[2];
+	uint32_t DAC0CAL0;      /* DAC calibrartion register 0 */
+	uint32_t DAC0CAL1;      /* DAC calibrartion register 1 */
+	uint32_t DAC0CAL2;      /* DAC calibrartion register 2 */
+	uint32_t AUXHFRCOCAL0;  /* AUXHFRCO calibration register 0 */
+	uint32_t AUXHFRCOCAL1;  /* AUXHFRCO calibration register 1 */
+	uint32_t HFRCOCAL0;     /* HFRCO calibration register 0 */
+	uint32_t HFRCOCAL1;     /* HFRCO calibration register 1 */
+	uint32_t MEMINFO;       /* Memory information */
+	uint32_t RESERVED2;
+	uint32_t RADIO2;        /* Radio information 2 */
+	uint32_t UNIQUEL;       /* Low 32 bits of device unique number */
+	uint32_t UNIQUEH;       /* High 32 bits of device unique number */
+	uint32_t MSIZE;         /* Flash and SRAM Memory size in KiloBytes */
+	uint32_t PART;          /* Part description */
+} di_v2_t;
 
-/* top 24 bits of eui */
-#define EFM32_V2_DI_EUI_ENERGYMICRO	0xd0cf5e
+/* EFR32xG1x */
+typedef struct {
+	uint32_t CAL;              /* CRC of DI-page and calibration temperature */
+	uint32_t MODULEINFO;       /* Module trace information */
+	uint32_t MODXOCAL;         /* Module Crystal Oscillator Calibration */
+	uint32_t RESERVED0[5U];
+	uint32_t EXTINFO;          /* External Component description */
+	uint32_t RESERVED1[1U];
+	uint32_t EUI48L;           /* EUI48 OUI and Unique identifier */
+	uint32_t EUI48H;           /* OUI */
+	uint32_t CUSTOMINFO;       /* Custom information */
+	uint32_t MEMINFO;          /* Flash page size and misc. chip information */
+	uint32_t RESERVED2[2U];
+	uint32_t UNIQUEL;          /* Low 32 bits of device unique number */
+	uint32_t UNIQUEH;          /* High 32 bits of device unique number */
+	uint32_t MSIZE;            /* Flash and SRAM Memory size in kB */
+	uint32_t PART;             /* Part description */
+	uint32_t DEVINFOREV;       /* Device information page revision */
+	uint32_t EMUTEMP;          /* EMU Temperature Calibration Information */
+	uint32_t RESERVED3[2U];
+	uint32_t ADC0CAL0;         /* ADC0 calibration register 0 */
+	uint32_t ADC0CAL1;         /* ADC0 calibration register 1 */
+	uint32_t ADC0CAL2;         /* ADC0 calibration register 2 */
+	uint32_t ADC0CAL3;         /* ADC0 calibration register 3 */
+	uint32_t RESERVED4[4U];
+	uint32_t HFRCOCAL0;        /* HFRCO Calibration Register (4 MHz) */
+	uint32_t RESERVED5[2U];
+	uint32_t HFRCOCAL3;        /* HFRCO Calibration Register (7 MHz) */
+	uint32_t RESERVED6[2U];
+	uint32_t HFRCOCAL6;        /* HFRCO Calibration Register (13 MHz) */
+	uint32_t HFRCOCAL7;        /* HFRCO Calibration Register (16 MHz) */
+	uint32_t HFRCOCAL8;        /* HFRCO Calibration Register (19 MHz) */
+	uint32_t RESERVED7[1U];
+	uint32_t HFRCOCAL10;       /* HFRCO Calibration Register (26 MHz) */
+	uint32_t HFRCOCAL11;       /* HFRCO Calibration Register (32 MHz) */
+	uint32_t HFRCOCAL12;       /* HFRCO Calibration Register (38 MHz) */
+	uint32_t RESERVED8[11U];
+	uint32_t AUXHFRCOCAL0;     /* AUXHFRCO Calibration Register (4 MHz) */
+	uint32_t RESERVED9[2U];
+	uint32_t AUXHFRCOCAL3;     /* AUXHFRCO Calibration Register (7 MHz) */
+	uint32_t RESERVED10[2U];
+	uint32_t AUXHFRCOCAL6;     /* AUXHFRCO Calibration Register (13 MHz) */
+	uint32_t AUXHFRCOCAL7;     /* AUXHFRCO Calibration Register (16 MHz) */
+	uint32_t AUXHFRCOCAL8;     /* AUXHFRCO Calibration Register (19 MHz) */
+	uint32_t RESERVED11[1U];
+	uint32_t AUXHFRCOCAL10;    /* AUXHFRCO Calibration Register (26 MHz) */
+	uint32_t AUXHFRCOCAL11;    /* AUXHFRCO Calibration Register (32 MHz) */
+	uint32_t AUXHFRCOCAL12;    /* AUXHFRCO Calibration Register (38 MHz) */
+	uint32_t RESERVED12[11U];
+	uint32_t VMONCAL0;         /* VMON Calibration Register 0 */
+	uint32_t VMONCAL1;         /* VMON Calibration Register 1 */
+	uint32_t VMONCAL2;         /* VMON Calibration Register 2 */
+	uint32_t RESERVED13[3U];
+	uint32_t IDAC0CAL0;        /* IDAC0 Calibration Register 0 */
+	uint32_t IDAC0CAL1;        /* IDAC0 Calibration Register 1 */
+	uint32_t RESERVED14[2U];
+	uint32_t DCDCLNVCTRL0;     /* DCDC Low-noise VREF Trim Register 0 */
+	uint32_t DCDCLPVCTRL0;     /* DCDC Low-power VREF Trim Register 0 */
+	uint32_t DCDCLPVCTRL1;     /* DCDC Low-power VREF Trim Register 1 */
+	uint32_t DCDCLPVCTRL2;     /* DCDC Low-power VREF Trim Register 2 */
+	uint32_t DCDCLPVCTRL3;     /* DCDC Low-power VREF Trim Register 3 */
+	uint32_t DCDCLPCMPHYSSEL0; /* DCDC LPCMPHYSSEL Trim Register 0 */
+	uint32_t DCDCLPCMPHYSSEL1; /* DCDC LPCMPHYSSEL Trim Register 1 */
+} di_v3_t;
+
+/* EFR32xG2x */
+typedef struct {
+	uint32_t INFO;                  /* DI Information */
+	uint32_t PART;                  /* Part Info */
+	uint32_t MEMINFO;               /* Memory Info */
+	uint32_t MSIZE;                 /* Memory Size */
+	uint32_t PKGINFO;               /* Misc Device Info */
+	uint32_t CUSTOMINFO;            /* Custom Part Info */
+	uint32_t SWFIX;                 /* SW Fix Register */
+	uint32_t SWCAPA0;               /* Software Restriction */
+	uint32_t SWCAPA1;               /* Software Restriction */
+	uint32_t RESERVED0[1U];
+	uint32_t EXTINFO;               /* External Component Info */
+	uint32_t RESERVED1[2U];
+	uint32_t RESERVED2[3U];
+	uint32_t EUI48L;                /* EUI 48 Low */
+	uint32_t EUI48H;                /* EUI 48 High */
+	uint32_t EUI64L;                /* EUI64 Low */
+	uint32_t EUI64H;                /* EUI64 High */
+	uint32_t CALTEMP;               /* Calibration temperature Information */
+	uint32_t EMUTEMP;               /* EMU Temperature Sensor Calibration Information */
+	uint32_t HFRCODPLLCAL[18U];     /* HFRCODPLL Calibration */
+	uint32_t HFRCOEM23CAL[18U];     /* HFRCOEM23 Calibration */
+	uint32_t HFRCOSECAL[18U];       /* HFRCOSECAL Calibration */
+	uint32_t MODULENAME0;           /* Module Name Information */
+	uint32_t MODULENAME1;           /* Module Name Information */
+	uint32_t MODULENAME2;           /* Module Name Information */
+	uint32_t MODULENAME3;           /* Module Name Information */
+	uint32_t MODULENAME4;           /* Module Name Information */
+	uint32_t MODULENAME5;           /* Module Name Information */
+	uint32_t MODULENAME6;           /* Module Name Information */
+	uint32_t MODULEINFO;            /* Module Information */
+	uint32_t MODXOCAL;              /* Module External Oscillator Calibration Information */
+	uint32_t RESERVED3[11U];
+	uint32_t IADC0GAIN0;            /* IADC Gain Calibration */
+	uint32_t IADC0GAIN1;            /* IADC Gain Calibration */
+	uint32_t IADC0OFFSETCAL0;       /* IADC Offset Calibration */
+	uint32_t IADC0NORMALOFFSETCAL0; /* IADC Offset Calibration */
+	uint32_t IADC0NORMALOFFSETCAL1; /* IADC Offset Calibration */
+	uint32_t IADC0HISPDOFFSETCAL0;  /* IADC Offset Calibration */
+	uint32_t IADC0HISPDOFFSETCAL1;  /* IADC Offset Calibration */
+	uint32_t RESERVED4[24U];
+	uint32_t LEGACY;                /* Legacy Device Info */
+	uint32_t RESERVED5[23U];
+	uint32_t RTHERM;                /* Thermistor Calibration */
+	uint32_t RESERVED6[81U];
+} di_v4_t;
 
 /* -------------------------------------------------------------------------- */
 /* Constants */
 /* -------------------------------------------------------------------------- */
 
+#define EFM32_UNKNOWN_FAMILY    9999
+
 typedef struct efm32_device_t {
-	uint16_t family_id;	/* Family for device matching */
-	char* name;			/* Friendly device family name */
-	uint32_t flash_page_size;	/* Flash page size */
-	uint32_t msc_addr;			/* MSC Address */
-	bool has_radio;		   /* Indicates a device has attached radio */
-	uint32_t user_data_size;	/* User Data (UD) region size */
-	uint32_t bootloader_size;	/* Bootloader (BL) region size (may be 0 for no BL region) */
-	char* description;	   /* Human-readable description */
+	uint16_t family_id;          /* Family for device matching */
+	uint8_t di_version;          /* Device information version */
+	char* name;                  /* Friendly device family name */
+	uint32_t flash_page_size;    /* Flash page size */
+	uint32_t msc_addr;           /* MSC Address */
+	bool has_radio;              /* Indicates a device has attached radio */
+	uint32_t user_data_size;     /* User Data (UD) region size */
+	uint32_t bootloader_size;    /* Bootloader (BL) region size (may be 0 for no BL region) */
+	char* description;           /* Human-readable description */
 } efm32_device_t;
 
-efm32_device_t const efm32_devices[] = {
+static efm32_device_t const efm32_devices[] = {
 	/*  First gen micros */
-	{71, "EFM32G", 512, 0x400c0000, false, 512, 0, "Gecko"},
-	{72, "EFM32GG", 2048, 0x400c0000, false, 4096, 0, "Giant Gecko"},
-	{73, "EFM32TG", 512, 0x400c0000, false, 512, 0, "Tiny Gecko"},
-	{74, "EFM32LG", 2048, 0x400c0000, false, 2048, 0, "Leopard Gecko"},
-	{75, "EFM32WG", 2048, 0x400c0000, false, 2048, 0, "Wonder Gecko"},
-	{76, "EFM32ZG", 1024, 0x400c0000, false, 1024, 0, "Zero Gecko"},
-	{77, "EFM32HG", 1024, 0x400c0000, false, 1024, 0, "Happy Gecko"},
+	{71, 1, "EFM32G" ,  512, 0x400c0000, false,  512, 0, "Gecko"},
+	{72, 1, "EFM32GG", 2048, 0x400c0000, false, 4096, 0, "Giant Gecko"},
+	{73, 1, "EFM32TG",  512, 0x400c0000, false,  512, 0, "Tiny Gecko"},
+	{74, 1, "EFM32LG", 2048, 0x400c0000, false, 2048, 0, "Leopard Gecko"},
+	{75, 1, "EFM32WG", 2048, 0x400c0000, false, 2048, 0, "Wonder Gecko"},
+	{76, 1, "EFM32ZG", 1024, 0x400c0000, false, 1024, 0, "Zero Gecko"},
+	{77, 1, "EFM32HG", 1024, 0x400c0000, false, 1024, 0, "Happy Gecko"},
 	/*  First (1.5) gen micro + radio */
-	{120, "EZR32WG", 2048, 0x400c0000, true, 2048, 0, "EZR Wonder Gecko"},
-	{121, "EZR32LG", 2048, 0x400c0000, true, 2048, 0, "EZR Leopard Gecko"},
-	{122, "EZR32HG", 1024, 0x400c0000, true, 1024, 0, "EZR Happy Gecko"},
+	{120, 2, "EZR32WG", 2048, 0x400c0000, true, 2048, 0, "EZR Wonder Gecko"},
+	{121, 2, "EZR32LG", 2048, 0x400c0000, true, 2048, 0, "EZR Leopard Gecko"},
+	{122, 2, "EZR32HG", 1024, 0x400c0000, true, 1024, 0, "EZR Happy Gecko"},
 	/*  Second gen micros */
-	{81, "EFM32PG1B", 2048, 0x400e0000, false, 2048, 10240, "Pearl Gecko"},
-	{83, "EFM32JG1B", 2048, 0x400e0000, false, 2048, 10240, "Jade Gecko"},
-	{85, "EFM32PG12B", 2048, 0x400e0000, false, 2048, 32768,"Pearl Gecko 12"},
-	{87, "EFM32JG12B", 2048, 0x400e0000, false, 2048, 32768, "Jade Gecko 12"},
+	{81, 3, "EFM32PG1B" , 2048, 0x400e0000, false, 2048, 10240, "Pearl Gecko"},
+	{83, 3, "EFM32JG1B" , 2048, 0x400e0000, false, 2048, 10240, "Jade Gecko"},
+	{85, 3, "EFM32PG12B", 2048, 0x400e0000, false, 2048, 32768,"Pearl Gecko 12"},
+	{87, 3, "EFM32JG12B", 2048, 0x400e0000, false, 2048, 32768, "Jade Gecko 12"},
 	/*  Second (2.5) gen micros, with re-located MSC */
-	{100, "EFM32GG11B", 4096, 0x40000000, false, 4096, 32768, "Giant Gecko 11"},
-	{103, "EFM32TG11B", 2048, 0x40000000, false, 2048, 18432, "Tiny Gecko 11"},
-	{106, "EFM32GG12B", 2048, 0x40000000, false, 2048, 32768, "Giant Gecko 12"},
+	{100, 3, "EFM32GG11B", 4096, 0x40000000, false, 4096, 32768, "Giant Gecko 11"},
+	{103, 3, "EFM32TG11B", 2048, 0x40000000, false, 2048, 18432, "Tiny Gecko 11"},
+	{106, 3, "EFM32GG12B", 2048, 0x40000000, false, 2048, 32768, "Giant Gecko 12"},
 	/*  Second gen devices micro + radio */
-	{16, "EFR32MG1P", 2048, 0x400e0000, true, 2048, 10240, "Mighty Gecko"},
-	{17, "EFR32MG1B", 2048, 0x400e0000, true, 2048, 10240, "Mighty Gecko"},
-	{18, "EFR32MG1V", 2048, 0x400e0000, true, 2048, 10240, "Mighty Gecko"},
-	{19, "EFR32BG1P", 2048, 0x400e0000, true, 2048, 10240, "Blue Gecko"},
-	{20, "EFR32BG1B", 2048, 0x400e0000, true, 2048, 10240, "Blue Gecko"},
-	{21, "EFR32BG1V", 2048, 0x400e0000, true, 2048, 10240, "Blue Gecko"},
-	{25, "EFR32FG1P", 2048, 0x400e0000, true, 2048, 10240, "Flex Gecko"},
-	{26, "EFR32FG1B", 2048, 0x400e0000, true, 2048, 10240, "Flex Gecko"},
-	{27, "EFR32FG1V", 2048, 0x400e0000, true, 2048, 10240, "Flex Gecko"},
-	{28, "EFR32MG12P", 2048, 0x400e0000, true, 2048, 32768, "Mighty Gecko"},
-	{29, "EFR32MG12B", 2048, 0x400e0000, true, 2048, 32768, "Mighty Gecko"},
-	{30, "EFR32MG12V", 2048, 0x400e0000, true, 2048, 32768, "Mighty Gecko"},
-	{31, "EFR32BG12P", 2048, 0x400e0000, true, 2048, 32768, "Blue Gecko"},
-	{32, "EFR32BG12B", 2048, 0x400e0000, true, 2048, 32768, "Blue Gecko"},
-	{33, "EFR32BG12V", 2048, 0x400e0000, true, 2048, 32768, "Blue Gecko"},
-	{37, "EFR32FG12P", 2048, 0x400e0000, true, 2048, 32768, "Flex Gecko"},
-	{38, "EFR32FG12B", 2048, 0x400e0000, true, 2048, 32768, "Flex Gecko"},
-	{39, "EFR32FG12V", 2048, 0x400e0000, true, 2048, 32768, "Flex Gecko"},
-	{40, "EFR32MG13P", 2048, 0x400e0000, true, 2048, 16384, "Mighty Gecko"},
-	{41, "EFR32MG13B", 2048, 0x400e0000, true, 2048, 16384, "Mighty Gecko"},
-	{42, "EFR32MG13V", 2048, 0x400e0000, true, 2048, 16384, "Mighty Gecko"},
-	{43, "EFR32BG13P", 2048, 0x400e0000, true, 2048, 16384, "Blue Gecko"},
-	{44, "EFR32BG13B", 2048, 0x400e0000, true, 2048, 16384, "Blue Gecko"},
-	{45, "EFR32BG13V", 2048, 0x400e0000, true, 2048, 16384, "Blue Gecko"},
-	{49, "EFR32FG13P", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
-	{50, "EFR32FG13B", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
-	{51, "EFR32FG13V", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
-	{52, "EFR32MG14P", 2048, 0x400e0000, true, 2048, 16384, "Mighty Gecko"},
-	{53, "EFR32MG14B", 2048, 0x400e0000, true, 2048, 16384, "Mighty Gecko"},
-	{54, "EFR32MG14V", 2048, 0x400e0000, true, 2048, 16384, "Mighty Gecko"},
-	{55, "EFR32BG14P", 2048, 0x400e0000, true, 2048, 16384, "Blue Gecko"},
-	{56, "EFR32BG14B", 2048, 0x400e0000, true, 2048, 16384, "Blue Gecko"},
-	{57, "EFR32BG14V", 2048, 0x400e0000, true, 2048, 16384, "Blue Gecko"},
-	{61, "EFR32FG14P", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
-	{62, "EFR32FG14B", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
-	{63, "EFR32FG14V", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
+	{16, 3, "EFR32MG1P" , 2048, 0x400e0000, true, 2048, 10240, "Mighty Gecko"},
+	{17, 3, "EFR32MG1B" , 2048, 0x400e0000, true, 2048, 10240, "Mighty Gecko"},
+	{18, 3, "EFR32MG1V" , 2048, 0x400e0000, true, 2048, 10240, "Mighty Gecko"},
+	{19, 3, "EFR32BG1P" , 2048, 0x400e0000, true, 2048, 10240, "Blue Gecko"},
+	{20, 3, "EFR32BG1B" , 2048, 0x400e0000, true, 2048, 10240, "Blue Gecko"},
+	{21, 3, "EFR32BG1V" , 2048, 0x400e0000, true, 2048, 10240, "Blue Gecko"},
+	{25, 3, "EFR32FG1P" , 2048, 0x400e0000, true, 2048, 10240, "Flex Gecko"},
+	{26, 3, "EFR32FG1B" , 2048, 0x400e0000, true, 2048, 10240, "Flex Gecko"},
+	{27, 3, "EFR32FG1V" , 2048, 0x400e0000, true, 2048, 10240, "Flex Gecko"},
+	{28, 3, "EFR32MG12P", 2048, 0x400e0000, true, 2048, 32768, "Mighty Gecko"},
+	{29, 3, "EFR32MG12B", 2048, 0x400e0000, true, 2048, 32768, "Mighty Gecko"},
+	{30, 3, "EFR32MG12V", 2048, 0x400e0000, true, 2048, 32768, "Mighty Gecko"},
+	{31, 3, "EFR32BG12P", 2048, 0x400e0000, true, 2048, 32768, "Blue Gecko"},
+	{32, 3, "EFR32BG12B", 2048, 0x400e0000, true, 2048, 32768, "Blue Gecko"},
+	{33, 3, "EFR32BG12V", 2048, 0x400e0000, true, 2048, 32768, "Blue Gecko"},
+	{37, 3, "EFR32FG12P", 2048, 0x400e0000, true, 2048, 32768, "Flex Gecko"},
+	{38, 3, "EFR32FG12B", 2048, 0x400e0000, true, 2048, 32768, "Flex Gecko"},
+	{39, 3, "EFR32FG12V", 2048, 0x400e0000, true, 2048, 32768, "Flex Gecko"},
+	{40, 3, "EFR32MG13P", 2048, 0x400e0000, true, 2048, 16384, "Mighty Gecko"},
+	{41, 3, "EFR32MG13B", 2048, 0x400e0000, true, 2048, 16384, "Mighty Gecko"},
+	{42, 3, "EFR32MG13V", 2048, 0x400e0000, true, 2048, 16384, "Mighty Gecko"},
+	{43, 3, "EFR32BG13P", 2048, 0x400e0000, true, 2048, 16384, "Blue Gecko"},
+	{44, 3, "EFR32BG13B", 2048, 0x400e0000, true, 2048, 16384, "Blue Gecko"},
+	{45, 3, "EFR32BG13V", 2048, 0x400e0000, true, 2048, 16384, "Blue Gecko"},
+	{45, 3, "EFR32ZG13P", 2048, 0x400e0000, true, 2048, 16384, "Zero Gecko"},
+	{49, 3, "EFR32FG13P", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
+	{50, 3, "EFR32FG13B", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
+	{51, 3, "EFR32FG13V", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
+	{52, 3, "EFR32MG14P", 2048, 0x400e0000, true, 2048, 16384, "Mighty Gecko"},
+	{53, 3, "EFR32MG14B", 2048, 0x400e0000, true, 2048, 16384, "Mighty Gecko"},
+	{54, 3, "EFR32MG14V", 2048, 0x400e0000, true, 2048, 16384, "Mighty Gecko"},
+	{55, 3, "EFR32BG14P", 2048, 0x400e0000, true, 2048, 16384, "Blue Gecko"},
+	{56, 3, "EFR32BG14B", 2048, 0x400e0000, true, 2048, 16384, "Blue Gecko"},
+	{57, 3, "EFR32BG14V", 2048, 0x400e0000, true, 2048, 16384, "Blue Gecko"},
+	{58, 3, "EFR32ZG14P", 2048, 0x400e0000, true, 2048, 16384, "Zero Gecko"},
+	{61, 3, "EFR32FG14P", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
+	{62, 3, "EFR32FG14B", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
+	{63, 3, "EFR32FG14V", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
+	/*  Third gen devices micro + radio */
+	{128, 4, "EFR32xG21", 2048, 0x40030000, true, 2048, 0, "Flex Gecko"},
+	{129, 4, "EFR32xG21", 2048, 0x40030000, true, 2048, 0, "Mighty Gecko"},
+	{130, 4, "EFR32xG21", 2048, 0x40030000, true, 2048, 0, "Blue Gecko"},
+	{221, 4, "EFR32xG22", 2048, 0x40030000, true, 2048, 0, "Flex Gecko"},
+	{222, 4, "EFR32xG22", 2048, 0x40030000, true, 2048, 0, "Mighty Gecko"},
+	{223, 4, "EFR32xG22", 2048, 0x40030000, true, 2048, 0, "Blue Gecko"},
 };
-
+static const size_t efm32_devices_nb = sizeof(efm32_devices) / sizeof(efm32_device_t);
 
 /* miscchip */
-typedef struct efm32_v2_di_miscchip_t {
+typedef struct {
 	uint8_t pincount;
 	uint8_t pkgtype;
 	uint8_t tempgrade;
-} efm32_v2_di_miscchip_t;
+} efm32_di_miscchip_t;
 
 /* pkgtype */
-typedef struct efm32_v2_di_pkgtype_t {
+typedef struct {
 	uint8_t pkgtype;
 	char* name;
-} efm32_v2_di_pkgtype_t;
+} efm32_di_pkgtype_t;
 
-efm32_v2_di_pkgtype_t const efm32_v2_di_pkgtypes[] = {
-	{74, "WLCSP"},	/* WLCSP package */
-	{76, "BGA"},	/* BGA package */
-	{77, "QFN"},	/* QFN package */
-	{81, "QFxP"},	/* QFP package */
+static efm32_di_pkgtype_t const efm32_di_pkgtypes[] = {
+	{74, "WLCSP"},  /* WLCSP package */
+	{76, "BGA"},    /* BGA package */
+	{77, "QFN"},    /* QFN package */
+	{81, "QFxP"},   /* QFP package */
 };
 
 /* tempgrade */
-typedef struct efm32_v2_di_tempgrade_t {
+typedef struct {
 	uint8_t tempgrade;
 	char* name;
-} efm32_v2_di_tempgrade_t;
+} efm32_di_tempgrade_t;
 
-efm32_v2_di_tempgrade_t const efm32_v2_di_tempgrades[] = {
+static efm32_di_tempgrade_t const efm32_di_tempgrades[] = {
 	{0, "-40 to 85degC"},
 	{1, "-40 to 125degC"},
 	{2, "-40 to 105degC"},
@@ -377,46 +444,73 @@ efm32_v2_di_tempgrade_t const efm32_v2_di_tempgrades[] = {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Reads the EFM32 Extended Unique Identifier EUI64 (V1)
- */
-static uint64_t efm32_v1_read_eui64(target *t)
-{
-	uint64_t eui;
-
-	eui  = (uint64_t)target_mem_read32(t, EFM32_V1_DI_EUI64_1) << 32;
-	eui |= (uint64_t)target_mem_read32(t, EFM32_V1_DI_EUI64_0) <<  0;
-
-	return eui;
-}
-
-#if 0
-/**
  * Reads the EFM32 Extended Unique Identifier EUI48 (V2)
  */
-static uint64_t efm32_v2_read_eui48(target *t)
+#if 0
+static uint64_t efm32_read_eui48(target *t, uint8_t di_version)
 {
-	uint64_t eui;
-
-	eui  = (uint64_t)target_mem_read32(t, EFM32_V2_DI_EUI48H) << 32;
-	eui |= (uint64_t)target_mem_read32(t, EFM32_V2_DI_EUI48L) <<  0;
-
+	uint64_t eui = 0;
+	uint32_t addr_l;
+	uint32_t addr_h;
+	switch (di_version) {
+	case 3:
+		addr_l = (uint32_t) &((di_v3_t *) EFM32_DI_V3)->EUI48L;
+		addr_h = (uint32_t) &((di_v3_t *) EFM32_DI_V3)->EUI48H;
+		break;
+	case 4:
+		addr_l = (uint32_t) &((di_v4_t *) EFM32_DI_V4)->EUI48L;
+		addr_h = (uint32_t) &((di_v4_t *) EFM32_DI_V4)->EUI48H;
+		break;
+	default:
+		/* DI not supported */
+		addr_l = 0;
+		addr_h = 0;
+		break;
+	}
+	if (addr_l != 0 && addr_h != 0) {
+		eui  = (uint64_t) target_mem_read32(t, addr_h) << 32;
+		eui |= target_mem_read32(t, addr_l);
+	}
 	return eui;
 }
 #endif
+
 /**
- * Reads the Unique Number (DI V2 only)
+ * Reads the Unique Number
  */
-static uint64_t efm32_v2_read_unique(target *t, uint8_t di_version)
+static uint64_t efm32_read_unique(target *t, uint8_t di_version)
 {
-	uint64_t unique;
+	uint64_t unique = 0;
+	uint32_t addr_l;
+	uint32_t addr_h;
 	switch (di_version) {
+	case 1:
+		addr_l = (uint32_t) &((di_v1_t *) EFM32_DI_V1)->UNIQUEL;
+		addr_h = (uint32_t) &((di_v1_t *) EFM32_DI_V1)->UNIQUEH;
+		break;
 	case 2:
-		unique  = (uint64_t)target_mem_read32(t, EFM32_V2_DI_UNIQUEH) << 32;
-		unique |= (uint64_t)target_mem_read32(t, EFM32_V2_DI_UNIQUEL) << 0;
-		return unique;
+		addr_l = (uint32_t) &((di_v2_t *) EFM32_DI_V2)->UNIQUEL;
+		addr_h = (uint32_t) &((di_v2_t *) EFM32_DI_V2)->UNIQUEH;
+		break;
+	case 3:
+		addr_l = (uint32_t) &((di_v3_t *) EFM32_DI_V3)->UNIQUEL;
+		addr_h = (uint32_t) &((di_v3_t *) EFM32_DI_V3)->UNIQUEH;
+		break;
+	case 4:
+		addr_l = (uint32_t) &((di_v4_t *) EFM32_DI_V4)->EUI64L;
+		addr_h = (uint32_t) &((di_v4_t *) EFM32_DI_V4)->EUI64H;
+		break;
 	default:
-		return 0;
+		/* DI not supported */
+		addr_l = 0;
+		addr_h = 0;
+		break;
 	}
+	if (addr_l != 0 && addr_h != 0) {
+		unique  = (uint64_t) target_mem_read32(t, addr_h) << 32;
+		unique |= target_mem_read32(t, addr_l);
+	}
+	return unique;
 }
 
 /**
@@ -424,119 +518,223 @@ static uint64_t efm32_v2_read_unique(target *t, uint8_t di_version)
  */
 static uint16_t efm32_read_flash_size(target *t, uint8_t di_version)
 {
+	uint16_t size = 0;
+	uint32_t addr;
+	const uint32_t mask = EFM32_DI_MSIZE_FLASH_MASK;
+	const uint32_t ofst = EFM32_DI_MSIZE_FLASH_OFST;
 	switch (di_version) {
 	case 1:
-		return target_mem_read16(t, EFM32_V1_DI_MEM_INFO_FLASH);
+		addr = (uint32_t) &((di_v1_t *) EFM32_DI_V1)->MSIZE;
+		break;
 	case 2:
-		return (target_mem_read32(t, EFM32_V2_DI_MSIZE) >> 0) & 0xFFFF;
+		addr = (uint32_t) &((di_v2_t *) EFM32_DI_V2)->MSIZE;
+		break;
+	case 3:
+		addr = (uint32_t) &((di_v3_t *) EFM32_DI_V3)->MSIZE;
+		break;
+	case 4:
+		addr = (uint32_t) &((di_v4_t *) EFM32_DI_V4)->MSIZE;
+		break;
 	default:
-		return 0;
+		/* DI not supported */
+		addr = 0;
+		break;
 	}
+	if (addr != 0)
+		size = (uint16_t)((target_mem_read32(t, addr) >> ofst) & mask);
+	return size;
 }
+
 /**
  * Reads the EFM32 RAM size in kiB
  */
 static uint16_t efm32_read_ram_size(target *t, uint8_t di_version)
 {
+	uint16_t size = 0;
+	uint32_t addr;
+	const uint32_t mask = EFM32_DI_MSIZE_SRAM_MASK;
+	const uint32_t ofst = EFM32_DI_MSIZE_SRAM_OFST;
 	switch (di_version) {
 	case 1:
-		return target_mem_read16(t, EFM32_V1_DI_MEM_INFO_RAM);
+		addr = (uint32_t) &((di_v1_t *) EFM32_DI_V1)->MSIZE;
+		break;
 	case 2:
-		return (target_mem_read32(t, EFM32_V2_DI_MSIZE) >> 16) & 0xFFFF;
+		addr = (uint32_t) &((di_v2_t *) EFM32_DI_V2)->MSIZE;
+		break;
+	case 3:
+		addr = (uint32_t) &((di_v3_t *) EFM32_DI_V3)->MSIZE;
+		break;
+	case 4:
+		addr = (uint32_t) &((di_v4_t *) EFM32_DI_V4)->MSIZE;
+		break;
 	default:
-		return 0;
+		/* DI not supported */
+		addr = 0;
+		break;
 	}
+	if (addr != 0)
+		size = (uint16_t)((target_mem_read32(t, addr) >> ofst) & mask);
+	return size;
 }
+
 /**
  * Reads the EFM32 reported flash page size in bytes.  Note: This
  * driver ignores this value, and uses a conservative hard-coded
  * value. There are errata on the value reported by the EFM32
  * eg. DI_101
  */
-static uint32_t efm32_flash_page_size(target *t, uint8_t di_version)
+static uint32_t efm32_read_flash_page_size(target *t, uint8_t di_version)
 {
-	uint8_t mem_info_page_size;
-
+	uint32_t size = 0;
+	uint32_t addr;
+	uint32_t ofst;
+	uint32_t mask;
 	switch (di_version) {
 	case 1:
-		mem_info_page_size = target_mem_read8(t, EFM32_V1_DI_MEM_INFO_PAGE_SIZE);
+		addr = (uint32_t) &((di_v1_t *) EFM32_DI_V1)->MEMINFO;
+		mask = EFM32_DI_MEMINFO_FLASHPAGESIZE_MASK;
+		ofst = EFM32_DI_MEMINFO_FLASHPAGESIZE_OFST;
 		break;
 	case 2:
-		mem_info_page_size = (target_mem_read32(t, EFM32_V2_DI_MEMINFO) >> 24) & 0xFF;
+		addr = (uint32_t) &((di_v2_t *) EFM32_DI_V2)->MEMINFO;
+		mask = EFM32_DI_MEMINFO_FLASHPAGESIZE_MASK;
+		ofst = EFM32_DI_MEMINFO_FLASHPAGESIZE_OFST;
+		break;
+	case 3:
+		addr = (uint32_t) &((di_v3_t *) EFM32_DI_V3)->MEMINFO;
+		mask = EFM32_DI_MEMINFO_FLASHPAGESIZE_MASK;
+		ofst = EFM32_DI_MEMINFO_FLASHPAGESIZE_OFST;
+		break;
+	case 4:
+		addr = (uint32_t) &((di_v4_t *) EFM32_DI_V4)->MEMINFO;
+		mask = EFM32_DI_V4_MEMINFO_FLASHPAGESIZE_MASK;
+		ofst = EFM32_DI_V4_MEMINFO_FLASHPAGESIZE_OFST;
 		break;
 	default:
-		return 0;
+		/* DI not supported */
+		addr = 0;
+		break;
 	}
-
-	return (1 << (mem_info_page_size + 10)); /* uint8_t ovf here */
+	if (addr != 0) {
+		size = (target_mem_read32(t, addr) >> ofst) & mask;
+		size = 1 << (size + 10);
+	}
+	return size;
 }
-
 
 /**
  * Reads the EFM32 Part Number
  */
 static uint16_t efm32_read_part_number(target *t, uint8_t di_version)
 {
+	uint16_t partno = 0;
+	uint32_t addr;
+	const uint32_t mask = EFM32_DI_PART_NUMBER_MASK;
+	const uint32_t ofst = EFM32_DI_PART_NUMBER_OFST;
 	switch (di_version) {
 	case 1:
-		return target_mem_read8(t, EFM32_V1_DI_PART_NUMBER);
+		addr = (uint32_t) &((di_v1_t *) EFM32_DI_V1)->PART;
+		break;
 	case 2:
-		return target_mem_read32(t, EFM32_V2_DI_PART) & 0xFFFF;
+		addr = (uint32_t) &((di_v2_t *) EFM32_DI_V2)->PART;
+		break;
+	case 3:
+		addr = (uint32_t) &((di_v3_t *) EFM32_DI_V3)->PART;
+		break;
+	case 4:
+		addr = (uint32_t) &((di_v4_t *) EFM32_DI_V4)->PART;
+		break;
 	default:
-		return 0;
+		/* DI not supported */
+		addr = 0;
+		break;
 	}
+	if (addr != 0)
+		partno = (uint16_t)((target_mem_read32(t, addr) >> ofst) & mask);
+	return partno;
 }
+
 /**
  * Reads the EFM32 Part Family
  */
 static uint8_t efm32_read_part_family(target *t, uint8_t di_version)
 {
+	uint8_t part;
+	uint32_t addr;
+	uint32_t reg;
 	switch (di_version) {
 	case 1:
-		return target_mem_read8(t, EFM32_V1_DI_PART_FAMILY);
+		addr = (uint32_t) &((di_v1_t *) EFM32_DI_V1)->PART;
+		reg = target_mem_read32(t, addr);
+		part = (uint8_t)((reg >> EFM32_DI_PART_FAMILY_OFST) & EFM32_DI_PART_FAMILY_MASK);
+		break;
 	case 2:
-		return (target_mem_read32(t, EFM32_V2_DI_PART) >> 16) & 0xFF;
+		addr = (uint32_t) &((di_v2_t *) EFM32_DI_V2)->PART;
+		reg = target_mem_read32(t, addr);
+		part = (uint8_t)((reg >> EFM32_DI_PART_FAMILY_OFST) & EFM32_DI_PART_FAMILY_MASK);
+		break;
+	case 3:
+		addr = (uint32_t) &((di_v3_t *) EFM32_DI_V3)->PART;
+		reg = target_mem_read32(t, addr);
+		part = (uint8_t)((reg >> EFM32_DI_PART_FAMILY_OFST) & EFM32_DI_PART_FAMILY_MASK);
+		break;
+	case 4:
+		addr = (uint32_t) &((di_v4_t *) EFM32_DI_V4)->PART;
+		reg = target_mem_read32(t, addr);
+		part  = (uint8_t)((reg >> EFM32_DI_V4_PART_FAMILYNUM_OFST) & EFM32_DI_V4_PART_FAMILYNUM_MASK);
+		part += (uint8_t)((reg >> EFM32_DI_V4_PART_FAMILY_OFST) & EFM32_DI_V4_PART_FAMILY_MASK);
+		break;
 	default:
-		return 0;
+		/* DI not supported */
+		part = 0;
+		break;
 	}
+	return part;
 }
+
 /**
  * Reads the EFM32 Radio part number (EZR parts with V1 DI only)
  */
 static uint16_t efm32_read_radio_part_number(target *t, uint8_t di_version)
 {
-	switch (di_version) {
-	case 1:
-		return target_mem_read16(t, EFM32_V1_DI_RADIO_OPN);
-	default:
+	if (di_version == 2)
+		return target_mem_read16(t, (uint32_t) &((di_v2_t *) EFM32_DI_V2)->RADIO1);
+	else
 		return 0;
-	}
 }
 
 /**
  * Reads the EFM32 Misc. Chip definitions
  */
-static efm32_v2_di_miscchip_t efm32_v2_read_miscchip(target *t, uint8_t di_version)
+static efm32_di_miscchip_t efm32_read_miscchip(target *t, uint8_t di_version)
 {
-	uint32_t meminfo;
-	efm32_v2_di_miscchip_t miscchip;
-	memset(&miscchip, 0, sizeof(efm32_v2_di_miscchip_t) / sizeof(char));
-
+	uint32_t pkginfo;
+	uint32_t addr;
+	efm32_di_miscchip_t miscchip = { 0 };
 	switch (di_version) {
-	case 2:
-		meminfo = target_mem_read32(t, EFM32_V2_DI_MEMINFO);
-		miscchip.pincount  = (meminfo >> 16) & 0xFF;
-		miscchip.pkgtype   = (meminfo >>  8) & 0xFF;
-		miscchip.tempgrade = (meminfo >>  0) & 0xFF;
+	case 3:
+		addr = (uint32_t) &((di_v3_t *) EFM32_DI_V3)->MEMINFO;
+		break;
+	case 4:
+		addr = (uint32_t) &((di_v4_t *) EFM32_DI_V4)->PKGINFO;
+		break;
+	default:
+		/* DI not supported */
+		addr = 0;
+		break;
 	}
-
+	if (addr != 0) {
+		pkginfo = target_mem_read32(t, addr);
+		miscchip.pincount  = (pkginfo >> EFM32_DI_PKGINFO_PINCOUNT_OFST ) & EFM32_DI_PKGINFO_PINCOUNT_MASK;
+		miscchip.pkgtype   = (pkginfo >> EFM32_DI_PKGINFO_PKGTYPE_OFST  ) & EFM32_DI_PKGINFO_PKGTYPE_MASK;
+		miscchip.tempgrade = (pkginfo >> EFM32_DI_PKGINFO_TEMPGRADE_OFST) & EFM32_DI_PKGINFO_TEMPGRADE_MASK;
+	}
 	return miscchip;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Shared Functions */
 /* -------------------------------------------------------------------------- */
-
 
 static void efm32_add_flash(target *t, target_addr addr, size_t length,
 			    size_t page_size)
@@ -564,18 +762,18 @@ static size_t efm32_lookup_device_index(target *t, uint8_t di_version)
 	uint8_t part_family = efm32_read_part_family(t, di_version);
 
 	/* Search for family */
-	for (size_t i = 0; i < (sizeof(efm32_devices) / sizeof(efm32_device_t)); i++) {
+	for (size_t i = 0; i < efm32_devices_nb; i++) {
 		if (efm32_devices[i].family_id == part_family) {
 			return i;
 		}
 	}
 	/* Unknown family */
-	return 9999;
+	return EFM32_UNKNOWN_FAMILY;
 }
 
 static efm32_device_t const * efm32_get_device(size_t index)
 {
-	if (index >= (sizeof(efm32_devices) / sizeof(efm32_device_t))) {
+	if (index >= efm32_devices_nb) {
 		return NULL;
 	}
 	return &efm32_devices[index];
@@ -587,7 +785,7 @@ static efm32_device_t const * efm32_get_device(size_t index)
 char variant_string[60];
 bool efm32_probe(target *t)
 {
-	uint8_t di_version = 1;
+	uint8_t di_version;
 
 	/* Read the IDCODE register from the SW-DP */
 	ADIv5_AP_t *ap = cortexm_ap(t);
@@ -596,33 +794,24 @@ bool efm32_probe(target *t)
 	/* Check the idcode. See AN0062 Section 2.2 */
 	if (ap_idcode == 0x2BA01477) {
 		/* Cortex M3, Cortex M4 */
+		di_version = 3;
 	} else if (ap_idcode == 0x0BC11477) {
 		/* Cortex M0+ */
+		di_version = 2;
+	} else if (ap_idcode == 0x6BA02477) {
+		/* Cortex M33 */
+		di_version = 4;
 	} else {
 		return false;
-	}
-
-	/* Check the OUI in the EUI is silabs or energymicro.
-	 * Use this to identify the Device Identification (DI) version */
-	uint64_t oui24 = ((efm32_v1_read_eui64(t) >> 40) & 0xFFFFFF);
-	if (oui24 == EFM32_V1_DI_EUI_SILABS) {
-		/* Device Identification (DI) version 1 */
-		di_version = 1;
-	} else if (oui24 == EFM32_V2_DI_EUI_ENERGYMICRO) {
-		/* Device Identification (DI) version 2 */
-		di_version = 2;
-	} else {
-		/* Unknown OUI - assume version 1 */
-		di_version = 1;
 	}
 
 	/* Read the part family, and reject if unknown */
 	size_t device_index  = efm32_lookup_device_index(t, di_version);
-	if (device_index > (127-32)) {
+	if (device_index == EFM32_UNKNOWN_FAMILY) {
 		/* unknown device family */
 		return false;
 	}
-	efm32_device_t const* device = &efm32_devices[device_index];
+	efm32_device_t const* device = efm32_get_device(device_index);
 	if (device == NULL) {
 		return false;
 	}
@@ -647,10 +836,10 @@ bool efm32_probe(target *t)
 	target_add_ram (t, SRAM_BASE, ram_size);
 	efm32_add_flash(t, 0x00000000, flash_size, flash_page_size);
 	if (device->user_data_size) { /* optional User Data (UD) section */
-		efm32_add_flash(t, 0x0fe00000, device->user_data_size, flash_page_size);
+		efm32_add_flash(t, EFM32_USER_DATA, device->user_data_size, flash_page_size);
 	}
 	if (device->bootloader_size) { /* optional Bootloader (BL) section */
-		efm32_add_flash(t, 0x0fe10000, device->bootloader_size, flash_page_size);
+		efm32_add_flash(t, EFM32_BOOTLOADER, device->bootloader_size, flash_page_size);
 	}
 	target_add_commands(t, efm32_cmd_list, "EFM32");
 
@@ -772,22 +961,10 @@ static bool efm32_cmd_serial(target *t, int argc, const char **argv)
 {
 	(void)argc;
 	(void)argv;
-	uint64_t unique = 0;
+	uint64_t unique;
 	uint8_t di_version = t->driver[0] - 48; /* di version hidden in driver str */
-
-	switch (di_version) {
-	case 1:
-		/* Read the eui */
-		unique = efm32_v1_read_eui64(t);
-		break;
-	case 2:
-		/* Read unique number */
-		unique = efm32_v2_read_unique(t, di_version);
-		break;
-	}
-
-	tc_printf(t, "Unique Number: 0x%016llx\n", unique);
-
+	unique = efm32_read_unique(t, di_version);
+	tc_printf(t, "Unique Number: 0x%08lx%08lx\n", (uint32_t)(unique >> 32), (uint32_t) unique);
 	return true;
 }
 /**
@@ -801,10 +978,16 @@ static bool efm32_cmd_efm_info(target *t, int argc, const char **argv)
 
 	switch (di_version) {
 	case 1:
-		tc_printf(t, "DI version 1 (silabs remix?) base 0x%08x\n\n", EFM32_V1_DI);
+		tc_printf(t, "DI version 1 (EFM32xG) base 0x%08x\n\n", EFM32_DI_V1);
 		break;
 	case 2:
-		tc_printf(t, "DI version 2 (energy micro remix?) base 0x%08x\n\n", EFM32_V2_DI);
+		tc_printf(t, "DI version 2 (EZR32xG) base 0x%08x\n\n", EFM32_DI_V2);
+		break;
+	case 3:
+		tc_printf(t, "DI version 3 (EFR32xG1x) base 0x%08x\n\n", EFM32_DI_V3);
+		break;
+	case 4:
+		tc_printf(t, "DI version 4 (EFR32xG2x) base 0x%08x\n\n", EFM32_DI_V4);
 		break;
 	default:
 		tc_printf(t, "Bad DI version %d! This driver doesn't know about this DI version\n", di_version);
@@ -821,7 +1004,7 @@ static bool efm32_cmd_efm_info(target *t, int argc, const char **argv)
 	/* Read memory sizes, convert to bytes */
 	uint16_t flash_kib  = efm32_read_flash_size(t, di_version);
 	uint16_t ram_kib    = efm32_read_ram_size(t, di_version);
-	uint32_t flash_page_size_reported = efm32_flash_page_size(t, di_version);
+	uint32_t flash_page_size_reported = efm32_read_flash_page_size(t, di_version);
 	uint32_t flash_page_size          = device->flash_page_size;
 
 	tc_printf(t, "%s %d F%d = %s %dkiB flash, %dkiB ram\n",
@@ -834,21 +1017,21 @@ static bool efm32_cmd_efm_info(target *t, int argc, const char **argv)
 	}
 	tc_printf(t, "\n");
 
-	if (di_version == 2) {
-		efm32_v2_di_miscchip_t miscchip = efm32_v2_read_miscchip(t, di_version);
-		efm32_v2_di_pkgtype_t const* pkgtype = NULL;
-		efm32_v2_di_tempgrade_t const* tempgrade;
+	if (di_version == 3 || di_version == 4) {
+		efm32_di_miscchip_t miscchip = efm32_read_miscchip(t, di_version);
+		efm32_di_pkgtype_t const* pkgtype = NULL;
+		efm32_di_tempgrade_t const* tempgrade;
 
-		for (size_t i = 0; i < (sizeof(efm32_v2_di_pkgtypes) /
-								sizeof(efm32_v2_di_pkgtype_t)); i++) {
-			if (efm32_v2_di_pkgtypes[i].pkgtype == miscchip.pkgtype) {
-				pkgtype = &efm32_v2_di_pkgtypes[i];
+		for (size_t i = 0; i < (sizeof(efm32_di_pkgtypes) /
+								sizeof(efm32_di_pkgtype_t)); i++) {
+			if (efm32_di_pkgtypes[i].pkgtype == miscchip.pkgtype) {
+				pkgtype = &efm32_di_pkgtypes[i];
 			}
 		}
-		for (size_t i = 0; i < (sizeof(efm32_v2_di_tempgrades) /
-								sizeof(efm32_v2_di_tempgrade_t)); i++) {
-			if (efm32_v2_di_tempgrades[i].tempgrade == miscchip.tempgrade) {
-				tempgrade = &efm32_v2_di_tempgrades[i];
+		for (size_t i = 0; i < (sizeof(efm32_di_tempgrades) /
+								sizeof(efm32_di_tempgrade_t)); i++) {
+			if (efm32_di_tempgrades[i].tempgrade == miscchip.tempgrade) {
+				tempgrade = &efm32_di_tempgrades[i];
 			}
 		}
 
@@ -857,7 +1040,7 @@ static bool efm32_cmd_efm_info(target *t, int argc, const char **argv)
 		tc_printf(t, "\n");
 	}
 
-	if (di_version == 1 && device->has_radio) {
+	if (di_version == 2 && device->has_radio) {
 		uint16_t radio_number = efm32_read_radio_part_number(t, di_version); /* on-chip radio */
 		tc_printf(t, "Radio si%d\n", radio_number);
 		tc_printf(t, "\n");
@@ -990,7 +1173,7 @@ void efm32_aap_probe(ADIv5_AP_t *ap)
 		return;
 	}
 
-	/* Both revsion 1 and revision 2 devices seen in the wild */
+	/* Both revision 1 and revision 2 devices seen in the wild */
 	uint16_t aap_revision = (uint16_t)((ap->idr & 0xF0000000) >> 28);
 
 	/* New target */
