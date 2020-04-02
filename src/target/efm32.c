@@ -506,6 +506,7 @@ static uint64_t efm32_read_unique(target *t, uint8_t di_version)
 		addr_h = 0;
 		break;
 	}
+	DEBUG("efm32 read unique %lx %lx\n", addr_h, addr_l);
 	if (addr_l != 0 && addr_h != 0) {
 		unique  = (uint64_t) target_mem_read32(t, addr_h) << 32;
 		unique |= target_mem_read32(t, addr_l);
@@ -540,6 +541,7 @@ static uint16_t efm32_read_flash_size(target *t, uint8_t di_version)
 		addr = 0;
 		break;
 	}
+	DEBUG("efm32 read flash size %lx\n", addr);
 	if (addr != 0)
 		size = (uint16_t)((target_mem_read32(t, addr) >> ofst) & mask);
 	return size;
@@ -572,6 +574,7 @@ static uint16_t efm32_read_ram_size(target *t, uint8_t di_version)
 		addr = 0;
 		break;
 	}
+	DEBUG("efm32 read ram size %lx\n", addr);
 	if (addr != 0)
 		size = (uint16_t)((target_mem_read32(t, addr) >> ofst) & mask);
 	return size;
@@ -615,6 +618,7 @@ static uint32_t efm32_read_flash_page_size(target *t, uint8_t di_version)
 		addr = 0;
 		break;
 	}
+	DEBUG("efm32 read flash page size %lx\n", addr);
 	if (addr != 0) {
 		size = (target_mem_read32(t, addr) >> ofst) & mask;
 		size = 1 << (size + 10);
@@ -649,6 +653,7 @@ static uint16_t efm32_read_part_number(target *t, uint8_t di_version)
 		addr = 0;
 		break;
 	}
+	DEBUG("efm32 read part number %lx\n", addr);
 	if (addr != 0)
 		partno = (uint16_t)((target_mem_read32(t, addr) >> ofst) & mask);
 	return partno;
@@ -723,6 +728,7 @@ static efm32_di_miscchip_t efm32_read_miscchip(target *t, uint8_t di_version)
 		addr = 0;
 		break;
 	}
+	DEBUG("efm32 read chip %lx\n", addr);
 	if (addr != 0) {
 		pkginfo = target_mem_read32(t, addr);
 		miscchip.pincount  = (pkginfo >> EFM32_DI_PKGINFO_PINCOUNT_OFST ) & EFM32_DI_PKGINFO_PINCOUNT_MASK;
@@ -760,10 +766,12 @@ static void efm32_add_flash(target *t, target_addr addr, size_t length,
 static size_t efm32_lookup_device_index(target *t, uint8_t di_version)
 {
 	uint8_t part_family = efm32_read_part_family(t, di_version);
+	DEBUG("EFM32 di_version=%d part_family=%d\n", di_version, part_family);
 
 	/* Search for family */
 	for (size_t i = 0; i < efm32_devices_nb; i++) {
 		if (efm32_devices[i].family_id == part_family) {
+			DEBUG("EFM32 family found i=%u\n", i);
 			return i;
 		}
 	}
@@ -792,6 +800,7 @@ bool efm32_probe(target *t)
 	uint32_t ap_idcode = ap->dp->idcode;
 
 	/* Check the idcode. See AN0062 Section 2.2 */
+	DEBUG("efm32_probe: ap_idcode=%lx\n", ap_idcode);
 	if (ap_idcode == 0x2BA01477) {
 		/* Cortex M3, Cortex M4 */
 		di_version = 3;
@@ -804,6 +813,44 @@ bool efm32_probe(target *t)
 	} else {
 		return false;
 	}
+
+	/* Check the OUI in the EUI is silabs or energymicro.
+	 * Use this to identify the Device Identification (DI) version */
+	// uint64_t oui24 = ((efm32_v1_read_eui64(t) >> 40) & 0xFFFFFF);
+	// DEBUG("efm32_probe: oui24=%lx\n", (uint32_t) oui24);
+	// if (oui24 == EFM32_V1_DI_EUI_SILABS) {
+	// 	/* Device Identification (DI) version 1 */
+	// 	di_version = 1;
+	// } else if (oui24 == EFM32_V2_DI_EUI_ENERGYMICRO) {
+	// 	/* Device Identification (DI) version 2 */
+	// 	di_version = 2;
+	// } else {
+	// 	/* Unknown OUI - assume version 1 */
+	// 	di_version = 1;
+	// }
+	// uint32_t oui48 = ((efm32_v2_read_eui48(t) >> 23) & 0xFFFFFF);
+	// DEBUG("efm_probe: oui48=%lx\n", oui48);
+	uint32_t di_addr;
+	switch (di_version){
+	case 1:
+		di_addr = EFM32_DI_V1;
+		break;
+	case 2:
+		di_addr = EFM32_DI_V2;
+		break;
+	case 3:
+		di_addr = EFM32_DI_V3;
+		break;
+	case 4:
+		di_addr = EFM32_DI_V4;
+		break;
+	}
+	for (int i = 0; i < 128; i++) {
+		if (i % 8 == 0)
+			DEBUG("\nefm32_probe: DI[%03x] ", i * 4);
+		DEBUG("%08lx ", target_mem_read32(t, di_addr + i * 4));
+	}
+	DEBUG("\n");
 
 	/* Read the part family, and reject if unknown */
 	size_t device_index  = efm32_lookup_device_index(t, di_version);
@@ -1170,6 +1217,7 @@ void efm32_aap_probe(ADIv5_AP_t *ap)
 		/* It's an EFM32 AAP! */
 		DEBUG("EFM32: Found EFM32 AAP\n");
 	} else {
+		DEBUG("EFM32: AAP not found idr=%lx\n", ap->idr);
 		return;
 	}
 

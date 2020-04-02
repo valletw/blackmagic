@@ -279,6 +279,7 @@ bool cortexm_probe(ADIv5_AP_t *ap, bool forced)
 		DEBUG("calloc: failed in %s\n", __func__);
 		return false;
 	}
+	DEBUG("cortexm_probe: identity=%lx\n", identity);
 
 	t->priv = priv;
 	t->priv_free = cortexm_priv_free;
@@ -300,7 +301,7 @@ bool cortexm_probe(ADIv5_AP_t *ap, bool forced)
 		t->core = "M0+";
 		break;
 	case 0x01: /* M7 */
-		t->core = "M7";
+		t->core = "M7/M33";
 		break;
 	}
 
@@ -356,6 +357,7 @@ bool cortexm_probe(ADIv5_AP_t *ap, bool forced)
 		if (!cortexm_forced_halt(t))
 			return false;
 
+	DEBUG("cortexm probing...\n");
 #define PROBE(x) \
 	do { if ((x)(t)) {target_halt_resume(t, 0); return true;} else target_check_error(t); } while (0)
 
