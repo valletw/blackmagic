@@ -70,14 +70,15 @@ const struct command_s efm32_cmd_list[] = {
 /* Memory System Controller (MSC) Registers */
 /* -------------------------------------------------------------------------- */
 
-#define EFM32_MSC_WRITECTRL(msc)   (msc+0x008)
-#define EFM32_MSC_WRITECMD(msc)    (msc+0x00c)
-#define EFM32_MSC_ADDRB(msc)       (msc+0x010)
+#define EFM32_MSC_WRITECTRL(msc)   (msc+(msc == 0x40030000?0x0c:0x08))
+#define EFM32_MSC_WRITECMD(msc)    (msc+(msc == 0x40030000?0x10:0x0c))
+#define EFM32_MSC_ADDRB(msc)       (msc+(msc == 0x40030000?0x14:0x10))
 #define EFM32_MSC_WDATA(msc)       (msc+0x018)
 #define EFM32_MSC_STATUS(msc)      (msc+0x01c)
-#define EFM32_MSC_IF(msc)          (msc+0x030)
-#define EFM32_MSC_LOCK(msc)        (msc+(msc == 0x400c0000?0x3c:0x40))
-#define EFM32_MSC_MASSLOCK(msc)    (msc+0x054)
+#define EFM32_MSC_IF(msc)          (msc+(msc == 0x40030000?0x20:0x30))
+#define EFM32_MSC_LOCK(msc)        (msc+((msc == 0x40030000)\
+                                       ||(msc == 0x400c0000)?0x3c:0x40))
+#define EFM32_MSC_MASSLOCK(msc)    (msc+(msc == 0x40030000?0x40:0x54))
 
 #define EFM32_MSC_LOCK_LOCKKEY        0x1b71
 #define EFM32_MSC_MASSLOCK_LOCKKEY    0x631a
@@ -397,12 +398,12 @@ static efm32_device_t const efm32_devices[] = {
 	{62, 3, "EFR32FG14B", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
 	{63, 3, "EFR32FG14V", 2048, 0x400e0000, true, 2048, 16384, "Flex Gecko"},
 	/*  Third gen devices micro + radio */
-	{128, 4, "EFR32xG21", 2048, 0x40030000, true, 2048, 0, "Flex Gecko"},
-	{129, 4, "EFR32xG21", 2048, 0x40030000, true, 2048, 0, "Mighty Gecko"},
-	{130, 4, "EFR32xG21", 2048, 0x40030000, true, 2048, 0, "Blue Gecko"},
-	{221, 4, "EFR32xG22", 2048, 0x40030000, true, 2048, 0, "Flex Gecko"},
-	{222, 4, "EFR32xG22", 2048, 0x40030000, true, 2048, 0, "Mighty Gecko"},
-	{223, 4, "EFR32xG22", 2048, 0x40030000, true, 2048, 0, "Blue Gecko"},
+	{128, 4, "EFR32xG21", 8192, 0x40030000, true, 1024, 0, "Flex Gecko"},
+	{129, 4, "EFR32xG21", 8192, 0x40030000, true, 1024, 0, "Mighty Gecko"},
+	{130, 4, "EFR32xG21", 8192, 0x40030000, true, 1024, 0, "Blue Gecko"},
+	{221, 4, "EFR32xG22", 8192, 0x40030000, true, 1024, 0, "Flex Gecko"},
+	{222, 4, "EFR32xG22", 8192, 0x40030000, true, 1024, 0, "Mighty Gecko"},
+	{223, 4, "EFR32xG22", 8192, 0x40030000, true, 1024, 0, "Blue Gecko"},
 };
 static const size_t efm32_devices_nb = sizeof(efm32_devices) / sizeof(efm32_device_t);
 
@@ -845,10 +846,12 @@ bool efm32_probe(target *t)
 		di_addr = EFM32_DI_V4;
 		break;
 	}
-	for (int i = 0; i < 128; i++) {
-		if (i % 8 == 0)
-			DEBUG("\nefm32_probe: DI[%03x] ", i * 4);
-		DEBUG("%08lx ", target_mem_read32(t, di_addr + i * 4));
+	uint32_t di_max = di_addr + 0x1000;
+	while (di_addr < di_max) {
+		if ((di_addr & 0x0f) == 0)
+			DEBUG("\nefm32_probe: DI[%03" PRIx32 "] ", di_addr & 0xfff);
+		DEBUG("%08" PRIx32" ", target_mem_read32(t, di_addr));
+		di_addr += 4;
 	}
 	DEBUG("\n");
 
