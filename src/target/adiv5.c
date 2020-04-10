@@ -108,6 +108,7 @@ enum arm_arch {
 	aa_nosupport,
 	aa_cortexm,
 	aa_cortexa,
+	aa_v8,
 	aa_end
 };
 
@@ -211,8 +212,114 @@ static const struct {
 	{0xc0f, aa_nosupport, cidc_unknown, PIDR_PN_BIT_STRINGS("Cortex-A15 Debug", "(Debug Unit)")}, /* support? */
 	{0xc14, aa_nosupport, cidc_unknown, PIDR_PN_BIT_STRINGS("Cortex-R4 Debug", "(Debug Unit)")}, /* support? */
 	{0xcd0, aa_nosupport, cidc_unknown, PIDR_PN_BIT_STRINGS("Atmel DSU", "(Device Service Unit)")},
-	{0xd21, aa_nosupport, cidc_unknown, PIDR_PN_BIT_STRINGS("Cortex-M33", "()")}, /* support? */
+	{0xd21, aa_v8,        cidc_unknown, PIDR_PN_BIT_STRINGS("Cortex-M33", "()")},
 	{0xfff, aa_end,       cidc_unknown, PIDR_PN_BIT_STRINGS("end", "end")}
+};
+
+/* DEVARCH register
+ * Identifies the architect and architecture of a CoreSight component.
+ */
+#define DEVARCH_OFFSET    0xFBC
+
+#define DEVARCH_ARCHID_MASK     0x0000FFFF
+#define DEVARCH_ARCHID_SHIFT    0
+#define DEVARCH_PRESENT_MASK    0x00100000
+
+#ifdef PLATFORM_HAS_DEBUG
+#define DEVARCH_BIT_STRINGS(...) __VA_ARGS__
+#else
+#define DEVARCH_BIT_STRINGS(...)
+#endif
+
+static const struct {
+	uint16_t archid;
+	enum arm_arch arch;
+#ifdef PLATFORM_HAS_DEBUG
+	const char *type;
+	const char *full;
+#endif
+} devarch_archid_bits[] = {
+	{0x0a00, aa_nosupport, DEVARCH_BIT_STRINGS("RAS", "()")},
+	{0x0a01, aa_nosupport, DEVARCH_BIT_STRINGS("ITM", "(Instrumentation Trace Macrocell)")},
+	{0x0a02, aa_nosupport, DEVARCH_BIT_STRINGS("DWT", "(Data Watchpoint and Trace)")},
+	{0x0a03, aa_nosupport, DEVARCH_BIT_STRINGS("FPB", "(Flash Patch and Breakpoint)")},
+	{0x0a04, aa_cortexm,   DEVARCH_BIT_STRINGS("SCS", "(System Control Space)")},
+	{0x0a10, aa_nosupport, DEVARCH_BIT_STRINGS("PC",  "(PC sample-based profiling)")},
+	{0x0a17, aa_nosupport, DEVARCH_BIT_STRINGS("MAP", "(Memory Access Port)")},
+	{0x0a27, aa_nosupport, DEVARCH_BIT_STRINGS("JAP", "(JTAG Access Port)")},
+	{0x0a31, aa_nosupport, DEVARCH_BIT_STRINGS("BTR", "(Basic Trace Router)")},
+	{0x0a37, aa_nosupport, DEVARCH_BIT_STRINGS("PR",  "(Power Requestor)")},
+	{0x0a47, aa_nosupport, DEVARCH_BIT_STRINGS("UAP", "(Unknown Access Port)")},
+	{0x0a50, aa_nosupport, DEVARCH_BIT_STRINGS("HSSTP", "()")},
+	{0x0a63, aa_nosupport, DEVARCH_BIT_STRINGS("STM", "(System Trace Macrocell)")},
+	{0x0a75, aa_nosupport, DEVARCH_BIT_STRINGS("ELA", "(CoreSight ELA)")},
+	{0x0af7, aa_nosupport, DEVARCH_BIT_STRINGS("ROM", "(CoreSight ROM)")},
+	{0x1a01, aa_nosupport, DEVARCH_BIT_STRINGS("ITM", "(Instrumentation Trace Macrocell)")},
+	{0x1a02, aa_nosupport, DEVARCH_BIT_STRINGS("DWT", "(Data Watchpoint and Trace)")},
+	{0x1a03, aa_nosupport, DEVARCH_BIT_STRINGS("FPB", "(Flash Patch and Breakpoint)")},
+	{0x1a14, aa_nosupport, DEVARCH_BIT_STRINGS("CTI", "(Cross Trigger Interface)")},
+	{0x2a04, aa_cortexm,   DEVARCH_BIT_STRINGS("SCS", "(System Control Space)")},    /* ARMv8-M */
+	{0x2a16, aa_nosupport, DEVARCH_BIT_STRINGS("PMU", "(Performance Monitor)")},
+	{0x4a13, aa_nosupport, DEVARCH_BIT_STRINGS("ETM", "(Embedded Trace Macrocell)")},
+	{0x6a05, aa_nosupport, DEVARCH_BIT_STRINGS("SCS", "(System Control Space)")},    /* ARMv8-R */
+	{0x6a15, aa_cortexa,   DEVARCH_BIT_STRINGS("SCS", "(System Control Space)")},    /* v8.0-A */
+	{0x7a15, aa_cortexa,   DEVARCH_BIT_STRINGS("SCS", "(System Control Space)")},    /* v8.1-A */
+	{0x8a15, aa_cortexa,   DEVARCH_BIT_STRINGS("SCS", "(System Control Space)")},    /* v8.2-A */
+	{0xffff, aa_end,       DEVARCH_BIT_STRINGS("end", "end")}
+};
+
+/* DEVTYPE register
+ * A debugger can use DEVTYPE to obtain information about a component that has
+ * an unrecognized Part number.
+ */
+#define DEVTYPE_OFFSET    0xFCC
+
+#define DEVTYPE_MAJOR_MASK     0x0F
+#define DEVTYPE_MAJOR_SHIFT    0
+#define DEVTYPE_MINOR_MASK     0xF0
+#define DEVTYPE_MINOR_SHIFT    4
+
+static const struct {
+	uint8_t id;
+	enum arm_arch arch;
+#ifdef PLATFORM_HAS_DEBUG
+	const char *type;
+	const char *detail;
+#endif
+} devtype_id_bits[] = {
+	{0x00, aa_nosupport, DEVARCH_BIT_STRINGS("Miscellaneous", "(Other, undefined)")},
+	{0x04, aa_nosupport, DEVARCH_BIT_STRINGS("Miscellaneous", "(Validation component)")},
+	{0x10, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Sink", "(Other)")},
+	{0x11, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Sink", "(Trace port (TPIU))")},
+	{0x12, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Sink", "(Buffer (ETB))")},
+	{0x13, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Sink", "(Basic trace router)")},
+	{0x20, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Link", "(Other)")},
+	{0x21, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Link", "(Trace funnel, Router)")},
+	{0x22, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Link", "(Filter)")},
+	{0x23, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Link", "(FIFO, Large Buffer)")},
+	{0x30, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Source", "(Other)")},
+	{0x31, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Source", "(Processor core)")},
+	{0x32, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Source", "(DSP)")},
+	{0x33, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Source", "(Data Engine or coprocessor)")},
+	{0x34, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Source", "(Bus activity)")},
+	{0x36, aa_nosupport, DEVARCH_BIT_STRINGS("Trace Source", "(Software activity)")},
+	{0x40, aa_nosupport, DEVARCH_BIT_STRINGS("Debug Control", "(Other)")},
+	{0x41, aa_nosupport, DEVARCH_BIT_STRINGS("Debug Control", "(Trigger Matrix (ECT))")},
+	{0x42, aa_nosupport, DEVARCH_BIT_STRINGS("Debug Control", "(Debug Authentication Module)")},
+	{0x43, aa_nosupport, DEVARCH_BIT_STRINGS("Debug Control", "(Power requestor)")},
+	{0x50, aa_nosupport, DEVARCH_BIT_STRINGS("Debug Logic", "(Other)")},
+	{0x51, aa_nosupport, DEVARCH_BIT_STRINGS("Debug Logic", "(Processor core)")},
+	{0x52, aa_nosupport, DEVARCH_BIT_STRINGS("Debug Logic", "(DSP)")},
+	{0x53, aa_nosupport, DEVARCH_BIT_STRINGS("Debug Logic", "(Data Engine or coprocessor)")},
+	{0x54, aa_nosupport, DEVARCH_BIT_STRINGS("Debug Logic", "(Bus activity)")},
+	{0x55, aa_nosupport, DEVARCH_BIT_STRINGS("Debug Logic", "(Memory (BIST))")},
+	{0x60, aa_nosupport, DEVARCH_BIT_STRINGS("Performance Monitor", "(Other)")},
+	{0x61, aa_nosupport, DEVARCH_BIT_STRINGS("Performance Monitor", "(Processor)")},
+	{0x62, aa_nosupport, DEVARCH_BIT_STRINGS("Performance Monitor", "(DSP)")},
+	{0x63, aa_nosupport, DEVARCH_BIT_STRINGS("Performance Monitor", "(Data Engine or coprocessor)")},
+	{0x64, aa_nosupport, DEVARCH_BIT_STRINGS("Performance Monitor", "(Bus activity)")},
+	{0x65, aa_nosupport, DEVARCH_BIT_STRINGS("Performance Monitor", "(Memory Management Unit (MMU))")},
+	{0xff, aa_end,       DEVARCH_BIT_STRINGS("end", "end")}
 };
 
 extern bool cortexa_probe(ADIv5_AP_t *apb, uint32_t debug_base);
@@ -268,6 +375,50 @@ uint64_t adiv5_ap_read_pidr(ADIv5_AP_t *ap, uint32_t addr)
 	uint64_t pidr = adiv5_ap_read_id(ap, addr + PIDR4_OFFSET);
 	pidr = pidr << 32 |     adiv5_ap_read_id(ap, addr + PIDR0_OFFSET);
 	return pidr;
+}
+
+static enum arm_arch adiv5_armv8_probe(ADIv5_AP_t *ap, uint32_t addr)
+{
+	enum arm_arch arch = aa_nosupport;
+	uint16_t devarch_id = 0;
+	uint32_t devarch = adiv5_mem_read32(ap, addr + DEVARCH_OFFSET);
+	/* Check if DEVARCH is used. */
+	if (devarch & DEVARCH_PRESENT_MASK) {
+		devarch_id = (uint16_t)((devarch & DEVARCH_ARCHID_MASK) >> DEVARCH_ARCHID_SHIFT);
+		/* Parse achitecture ID. */
+		for (uint32_t i = 0; devarch_archid_bits[i].arch != aa_end; i++) {
+			if (devarch_archid_bits[i].archid == devarch_id) {
+				/* Architecture ID found. */
+				DEBUG("%s %s",
+					  devarch_archid_bits[i].type, devarch_archid_bits[i].full);
+				/* Check if it can be probed. */
+				if (devarch_archid_bits[i].arch != aa_nosupport) {
+					arch = devarch_archid_bits[i].arch;
+					break;
+				}
+			}
+		}
+	}
+	else {
+		/* Get DEVTYPE information. */
+		uint32_t devtype = adiv5_mem_read32(ap, addr + DEVTYPE_OFFSET);
+		uint8_t devtype_id = (uint8_t)((devtype & DEVTYPE_MINOR_MASK) >> DEVTYPE_MINOR_SHIFT);
+		devtype_id        |= (uint8_t)((devtype & DEVTYPE_MAJOR_MASK) >> DEVTYPE_MAJOR_SHIFT) << 4;
+		/* Parse type ID. */
+		for (uint32_t i = 0; devtype_id_bits[i].arch != aa_end; i++) {
+			if (devtype_id_bits[i].id == devtype_id) {
+				/* Type ID found. */
+				DEBUG("%s %s",
+					  devtype_id_bits[i].type, devtype_id_bits[i].detail);
+				/* Check if it can be probed. */
+				if (devtype_id_bits[i].arch != aa_nosupport) {
+					arch = devtype_id_bits[i].arch;
+					break;
+				}
+			}
+		}
+	}
+	return arch;
 }
 
 static bool adiv5_component_probe(ADIv5_AP_t *ap, uint32_t addr, int recursion, int num_entry)
@@ -356,11 +507,17 @@ static bool adiv5_component_probe(ADIv5_AP_t *ap, uint32_t addr, int recursion, 
 		int i;
 		for (i = 0; pidr_pn_bits[i].arch != aa_end; i++) {
 			if (pidr_pn_bits[i].part_number == part_number) {
-				DEBUG("%s%d 0x%" PRIx32 ": %s - %s %s (PIDR = 0x%02" PRIx32
-					  "%08" PRIx32 ")",
+				enum arm_arch armv8_probe = aa_nosupport;
+				DEBUG("%s%d 0x%" PRIx32 ": %s - %s ",
 					  indent + 1, num_entry, addr,
-					  cidc_debug_strings[cid_class],
-					  pidr_pn_bits[i].type, pidr_pn_bits[i].full,
+					  cidc_debug_strings[cid_class], pidr_pn_bits[i].type);
+				if (pidr_pn_bits[i].arch == aa_v8) {
+					armv8_probe = adiv5_armv8_probe(ap, addr);
+				}
+				else {
+					DEBUG("%s", pidr_pn_bits[i].full);
+				}
+				DEBUG(" (PIDR = 0x%02" PRIx32 "%08" PRIx32 ")",
 					  (uint32_t)(pidr >> 32), (uint32_t)pidr);
 				/* Perform sanity check, if we know what to expect as
 				 * component ID class.
@@ -374,11 +531,26 @@ static bool adiv5_component_probe(ADIv5_AP_t *ap, uint32_t addr, int recursion, 
 				res = true;
 				switch (pidr_pn_bits[i].arch) {
 				case aa_cortexm:
-					DEBUG("%s-> cortexm_probe\n", indent + 1);
+					DEBUG("\n%s-> cortexm_probe\n", indent + 1);
 					cortexm_probe(ap, false);
 					break;
+				case aa_v8:
+					switch (armv8_probe) {
+					case aa_cortexm:
+						DEBUG("\n%s-> cortexm_probe\n", indent + 1);
+						cortexm_probe(ap, false);
+						break;
+					case aa_cortexa:
+						DEBUG("\n%s-> cortexa_probe\n", indent + 1);
+						cortexa_probe(ap, addr);
+						break;
+					default:
+						DEBUG("\n");
+						break;
+					}
+					break;
 				case aa_cortexa:
-					DEBUG("\n -> cortexa_probe\n");
+					DEBUG("\n%s-> cortexa_probe\n", indent + 1);
 					cortexa_probe(ap, addr);
 					break;
 				default:
